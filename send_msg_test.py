@@ -4,17 +4,12 @@ from gpiozero import LED
 from time import sleep
 import time, sys, math
 from grove.adc import ADC
+from hamming_code import hamming_decode, hamming_encode
 led = LED(13)
 __all__ = ["GroveLightSensor"]
 # led = LED("GPIO27")   # 給 GPIO 腳位，跟上一行意義相同！
 # led = LED("J8:13")    # 定義為樹莓派的腳位
-'''
-while True:
-  led.on()
-  sleep(0.1)
-  led.off()
-  sleep(0.1)
-  '''
+
 signal = 0
 def led_light(msg):
   print()
@@ -26,10 +21,12 @@ def led_light(msg):
       led.on()
     else:
       led.off()
-    sleep(0.005)
+    sleep(0.003)
     signal = 1
     while signal == 1:
       pass
+
+
 def read_light(channel, threshold):
   global signal
   adc = ADC()
@@ -37,7 +34,7 @@ def read_light(channel, threshold):
   c = 0
   m = ''
   while True:
-    value +=adc.read(channel)
+    value += adc.read(channel)
     c += 1
     if signal == 1:
       if value / c > threshold:
@@ -47,8 +44,8 @@ def read_light(channel, threshold):
       signal = 0
       value = 0
       c = 0
-      if len(m) == 4:
-        print(m)
+      if len(m) == 12:
+        print(hamming_decode(m),end = '')
         m = ''
 
 def send_msg(msg):
@@ -62,14 +59,19 @@ pin = sh.argv2pin()
 thread1 = threading.Thread(target=read_light,args = [pin,400,]).start()
 #1010 1010 170
 #0111 0110 166
-msg = bin(8)[2:].zfill(8)
+msg = hamming_encode('hellow\n')
+print(msg)
+msg = msg[0] + '0' + msg[2:]
+print(msg)
 send_msg(msg)
 
-msg = bin(170)[2:].zfill(8)
+msg = hamming_encode('word\n')
+print(msg)
+msg = msg[0] + '1' + msg[2:]
+print(msg)
 send_msg(msg)
 
-msg = bin(99)[2:].zfill(8)
-send_msg(msg)
+
 
 
 
