@@ -6,7 +6,7 @@ export const App = () => {
 
   const onSubmitClick = async () => {
     console.log(input);
-    const response = await fetch('http://localhost:8000/send', {
+    const response = await fetch('http://localhost:8001/send', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
