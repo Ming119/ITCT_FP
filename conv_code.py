@@ -53,15 +53,15 @@ def decoder(code):
     ans = ''
     for i in range(1,len(shortest_path['path']) - 2):
         ans += shortest_path['path'][i][0]
-    return ans
+    return ans, shortest_path['distance']
 
 def hamming_distance(s1, s2):
     return sum(s1[i] != s2[i] for i in range(len(s1)))
 
 if __name__ == "__main__":
     #encode string to utf8
-    print('input : hello')
-    msg_b = 'hello'.encode("utf-8")
+    print('input : hello word')
+    msg_b = 'hello word'.encode("utf-8")
     bit_seq = ''
     for byte in msg_b:  # get bytes to binary values; every bits store to sublist
         bit_seq +=  f"{byte:08b}"
@@ -69,11 +69,17 @@ if __name__ == "__main__":
     code = encoder(bit_seq)
     #Simulate transmission errors 
     print('code before transmission: {}'.format(code))
-    code_ = '0' + code[1:5] +'0'+code[6:-1] + '0'
+    #code_ = '0' + code[1:5] +'0'+code[6:-1] + '0'
+    import random
+    code_ = bitarray(code)
+    for _ in range(10):
+        idx = random.randint(0, len(code) - 1)
+        code_[idx] = not (code_[idx])
+    code_ = str(code_)[10:-2]
     print('code after  transmission: {}'.format(code_))
     print('before transmission == after transmission: {}'.format(code == code_))
     #decode conv code
-    d_code = decoder(code_)
+    d_code, corrected_errors = decoder(code_)
     #decode utf-8
     msg_l = []
     for i in range(len(d_code) // 8):   # convert from binary-sring value to integer
@@ -81,3 +87,4 @@ if __name__ == "__main__":
         msg_l.append(int(val, 2))
 
     print('output: ' + bytes(msg_l).decode("utf-8"))   # finally decode to a regular string
+    print('corrected errors {}'.format(corrected_errors))
