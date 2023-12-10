@@ -15,7 +15,7 @@ def encoder(data):
         reg = reg >> 1 
         reg[0] = i
     return code
-
+#use Viterbi algorithm
 def decoder(code):
     F_bits = ['{}{}'.format(code[i * 2],code[i * 2+ 1]) for i in range(int(len(code) / 2))]
     state_dict = {
@@ -54,6 +54,7 @@ def decoder(code):
     for i in range(1,len(shortest_path['path']) - 2):
         ans += shortest_path['path'][i][0]
     return ans
+
 def hamming_distance(s1, s2):
     return sum(s1[i] != s2[i] for i in range(len(s1)))
 
