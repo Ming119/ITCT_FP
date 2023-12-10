@@ -96,4 +96,3 @@ def hamming_decode(msg: str, mode: int=8) -> str:
 
 	result = bytes(msg_l).decode("utf-8")   # finally decode to a regular string
 
-	return result
