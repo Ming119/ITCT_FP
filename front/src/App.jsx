@@ -1,23 +1,49 @@
 import { Container, Row, Col, Button } from 'react-bootstrap';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export const App = () => {
   const [input, setInput] = useState('');
+  const [output, setOutput] = useState('');
+  const [bps, setBps] = useState(0);
+  const [isFinished, setIsFinished] = useState(false);
 
   const onSubmitClick = async () => {
-    console.log(input);
     const response = await fetch('http://localhost:8001/send', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ message: input })  
     });
+    if (response.status === 200)
+      setIsFinished(true);
   }
 
-  const renderOutput = () => {
-  
-  };
+  useEffect(() => {
+    let failuresCount = 0;
+    if (isFinished) {
+      const interval = setInterval(async () => {
+        const response = await fetch('http://localhost:8002/get_result', {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        if (response.status === 200) {
+          const data = await response.json();
+          if (data.message === "" && data.bps === 0) {
+            failuresCount++;
+            if (failuresCount >= 5) {
+              clearInterval(interval);
+              setIsFinished(false);
+              setOutput("Error: Server is not responding");
+            }
+            return;
+          }
+          setOutput(data.message);
+          setBps(data.bps);
+          setIsFinished(false);
+        }
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [isFinished]);
 
   return (
     <Container>
@@ -39,7 +65,9 @@ export const App = () => {
 
         <Col className="border-left">
           <h2>Output:</h2>
-          { renderOutput() }
+          { output }
+          <br /><br />
+          { bps } bit/s
         </Col>
       </Row>
     </Container>

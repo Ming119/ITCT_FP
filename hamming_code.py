@@ -1,99 +1,60 @@
-from typing import List
-from math import log2, ceil
+def hamming_encode(data):
+	data = list(''.join(format(ord(i), 'b') for i in data))
 
-def __hamming_common(src: List[List[int]], s_num: int, encode=True) -> None:
-	"""
-	Here's the real magic =)
-	"""
-	s_range = range(s_num)
+	# Calculate the number of parity bits needed
+	m = len(data)
+	r = 1
+	while 2**r < m + r + 1:
+		r += 1
 
-	for i in src:
-		sindrome = 0
-		for s in s_range:
-			sind = 0
-			for p in range(2 ** s, len(i) + 1, 2 ** (s + 1)):
-				for j in range(2 ** s):
-					if (p + j) > len(i): break
-					sind ^= i[p + j - 1]
+	# Initialize the encoded data with zeros
+	encoded_data = [0] * (m + r)
 
-			if encode:
-				i[2 ** s - 1] = sind
-			else:
-				sindrome += (2 ** s * sind)
+	# Copy the data bits into the correct positions
+	j = 0
+	for i in range(1, m + r + 1):
+		if i == 2**j:
+			j += 1
+		else:
+			encoded_data[i - 1] = int(data.pop(0))
 
-		if (not encode) and sindrome:
-			i[sindrome - 1] = int(not i[sindrome - 1])
+	# Calculate the parity bits
+	for i in range(r):
+		index = 2**i - 1
+		parity = 0
+		for j in range(1, m + r + 1):
+			if (j >> i) & 1:
+				parity ^= encoded_data[j - 1]
+		encoded_data[index] = parity
 
+	return ''.join(map(str, encoded_data))
 
-def hamming_encode(msg: str, mode: int=8) -> str:
-	"""
-	Encoding the message with Hamming code.
+def hamming_decode(encoded_data):
+	encoded_data = list(map(int, encoded_data))
+	r = 1
+	while 2**r < len(encoded_data) + 1:
+		r += 1
 
-	:param msg: Message string to encode
-	:param mode: number of significant bits
-	:return:
-	"""
+	# Initialize the syndrome vector
+	syndrome = [0] * r
 
-	result = ""
+	# Calculate the syndrome bits
+	for i in range(r):
+		parity = 0
+		for j in range(len(encoded_data)):
+			if (j + 1) & (2**i):
+				parity ^= encoded_data[j]
+		syndrome[i] = parity
 
-	msg_b = msg.encode("utf-8")
-	s_num = ceil(log2(log2(mode + 1) + mode + 1))   # number of control bits
-	bit_seq = []
-	for byte in msg_b:  # get bytes to binary values; every bits store to sublist
-		bit_seq += list(map(int, f"{byte:08b}"))
+	# Correct the error, if any
+	error_position = sum([2**i * syndrome[i] for i in range(r)])
+	if error_position != 0:
+		encoded_data[error_position - 1] ^= 1
 
-	res_len = ceil((len(msg_b) * 8) / mode)     # length of result (bytes)
-	bit_seq += [0] * (res_len * mode - len(bit_seq))    # filling zeros
+	# Extract the original data
+	decoded_data = [encoded_data[i] for i in range(len(encoded_data)) if i & (i + 1) != 0]
 
-	to_hamming = []
+	# bitarray to string
+	decoded_data = ''.join(chr(int(decoded_data[i:i+8], 2)) for i in range(0, len(decoded_data), 8))
 
-	for i in range(res_len):    # insert control bits into specified positions
-		code = bit_seq[i * mode:i * mode + mode]
-		for j in range(s_num):
-			code.insert(2 ** j - 1, 0)
-		to_hamming.append(code)
-
-	__hamming_common(to_hamming, s_num, True)   # process
-
-	for i in to_hamming:
-		result += "".join(map(str, i))
-
-	return result
-
-def hamming_decode(msg: str, mode: int=8) -> str:
-	"""
-	Decoding the message with Hamming code.
-
-	:param msg: Message string to decode
-	:param mode: number of significant bits
-	:return:
-	"""
-
-	result = ""
-
-	s_num = ceil(log2(log2(mode + 1) + mode + 1))   # number of control bits
-	res_len = len(msg) // (mode + s_num)    # length of result (bytes)
-	code_len = mode + s_num     # length of one code sequence
-
-	to_hamming = []
-
-	for i in range(res_len):    # convert binary-like string to int-list
-		code = list(map(int, msg[i * code_len:i * code_len + code_len]))
-		to_hamming.append(code)
-
-	__hamming_common(to_hamming, s_num, False)  # process
-
-	for i in to_hamming:    # delete control bits
-		for j in range(s_num):
-			i.pop(2 ** j - 1 - j)
-		result += "".join(map(str, i))
-
-	msg_l = []
-
-	for i in range(len(result) // 8):   # convert from binary-sring value to integer
-		val = "".join(result[i * 8:i * 8 + 8])
-		msg_l.append(int(val, 2))
-
-	result = bytes(msg_l).decode("utf-8")   # finally decode to a regular string
-
-	return result
+	return decoded_data
