@@ -88,10 +88,7 @@ async def read_message():
     start = timer()
     message = await read_data(channel, adc, interval, length)
     end = timer()
-    print(f"message::{message}")
-    # FIXME: hamming_decode() is not working
-    decoded_message = await hamming_decode(message)
-    print(f"read_message::{decoded_message}")
+    decoded_message = hamming_decode(message)
     bps = len(message) / (end - start)
   
 # ============================

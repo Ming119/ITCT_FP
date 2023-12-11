@@ -1,5 +1,14 @@
+def string_to_binary(string_data):
+	binary_data = ''.join(format(ord(i), '08b') for i in string_data)
+	return list(map(int, binary_data))
+
+def binary_to_string(binary_data):
+	binary_string = ''.join(map(str, binary_data))
+	char_list = [chr(int(binary_string[i:i+8], 2)) for i in range(0, len(binary_string), 8)]
+	return ''.join(char_list)
+
 def hamming_encode(data):
-	data = list(''.join(format(ord(i), 'b') for i in data))
+	data = string_to_binary(data)
 
 	# Calculate the number of parity bits needed
 	m = len(data)
@@ -53,8 +62,6 @@ def hamming_decode(encoded_data):
 
 	# Extract the original data
 	decoded_data = [encoded_data[i] for i in range(len(encoded_data)) if i & (i + 1) != 0]
-
-	# bitarray to string
-	decoded_data = ''.join(chr(int(decoded_data[i:i+8], 2)) for i in range(0, len(decoded_data), 8))
-
+	decoded_data = binary_to_string(decoded_data)
+	
 	return decoded_data

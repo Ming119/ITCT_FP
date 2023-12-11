@@ -36,7 +36,7 @@ class Data(BaseModel):
 
 @app.post("/send")
 async def send(data: Data):
-  encoded_message = await hamming_encode(data.message)
+  encoded_message = hamming_encode(data.message)
   preamble = f'{0xAAAA:0>16b}'
   length   = f'{len(encoded_message):0>16b}'
   package  = preamble + length + encoded_message
