@@ -13,3 +13,16 @@ TODO
 pip install --upgrade reedsolo
 pip install bitarray
 ```
+
+### Front-end server
+```
+cd front
+npm install
+npm start
+```
+
+### Back-end servers
+```
+python3 sender_backend.py
+python3 recivier_backend.py
+```
