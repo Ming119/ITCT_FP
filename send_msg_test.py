@@ -3,9 +3,10 @@
 from gpiozero import LED
 from time import sleep
 import time, sys, math
-from grove.adc import ADC
+# from grove.adc import ADC
 from hamming_code import hamming_decode, hamming_encode
 import conv_code
+
 led = LED(13)
 __all__ = ["GroveLightSensor"]
 # led = LED("GPIO27")   # 給 GPIO 腳位，跟上一行意義相同！
@@ -13,21 +14,26 @@ __all__ = ["GroveLightSensor"]
 # 0  for start sensing a bit
 # 1  for end sensing a bit
 # -1 for do not thing
-signal = -1 
+# signal = -1 
 def led_light(msg):
-  print()
-  global signal
-  signal = 0
+  # print()
+  # global signal
+  # signal = 0
   for i in msg:
     if i == '1':
       led.on()
-    else:
+      sleep(0.008)
       led.off()
-    sleep(0.005)
-    signal = 1
-    while signal == 1:
-      pass
-  signal = -1
+    else:
+      led.on()
+      sleep(0.004)
+      led.off()
+    sleep(0.004)
+    
+    # signal = 1
+    # while signal == 1:
+      # pass
+  # signal = -1
 
 def read_light_hamming(channel, threshold):
   global signal
@@ -52,29 +58,35 @@ def read_light_hamming(channel, threshold):
         m = ''
     else:
       pass
-def send_msg(msg):
-  thread2 = threading.Thread(target=led_light,args = [msg,])
-  thread2.start()
-  thread2.join()
-from grove.helper import SlotHelper
-import threading
-sh = SlotHelper(SlotHelper.ADC)
-pin = sh.argv2pin()
-thread1 = threading.Thread(target=read_light_hamming,args = [pin,400,]).start()
+# def send_msg(msg):
+#   thread2 = threading.Thread(target=led_light,args = [msg,])
+#   thread2.start()
+#   thread2.join()
+# from grove.helper import SlotHelper
+# import threading
+# sh = SlotHelper(SlotHelper.ADC)
+# pin = sh.argv2pin()
+# thread1 = threading.Thread(target=read_light_hamming,args = [pin,400,])
+# thread1.start()
 #1010 1010 170
 #0111 0110 166
 #test hamming code
-msg = hamming_encode('hellow\n')
-print(msg)
-msg = msg[0] + '0' + msg[2:]
-print(msg)
-send_msg(msg)
+# msg = hamming_encode('hello word\n')
 
-msg = hamming_encode('word\n')
-print(msg)
-msg = msg[0] + '1' + msg[2:]
-print(msg)
-send_msg(msg)
+
+original_msg = 'Hello word! This is a test message.\n'
+header = '1010101010101010'
+encoded_msg = hamming_encode(original_msg)
+length = f"{len(encoded_msg):0>16b}"
+msg = header + length + encoded_msg
+# msg = msg[0] + '0' + msg[2:]
+print(f"Original Message: {original_msg}")
+print(f"Header: {header}")
+print(f"Length: {length}")
+print(f"Encoded Message: {encoded_msg}")
+# print(f"Packet: {msg}")
+led_light(msg)
+print('Done')
 
 '''
 #test conv code
