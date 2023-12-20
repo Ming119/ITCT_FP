@@ -7,8 +7,6 @@
 * https://github.com/tomerfiliba-org/reedsolomon
 * https://github.com/kamberasaf/Convolutional-codes/blob/main/convolutional_code.py
 ### Package
-
-TODO 
 ```
 pip install --upgrade reedsolo
 pip install bitarray
@@ -25,4 +23,9 @@ npm start
 ```
 python3 sender_backend.py
 python3 recivier_backend.py
+```
+
+### RLL、RS、CONV code test
+```
+python3 send_RS_conv_code.py {pin number}
 ```
